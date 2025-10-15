@@ -5,8 +5,6 @@ import 'package:ykos_kitchen/model/adress.dart';
 import 'package:ykos_kitchen/model/food.dart';
 import 'package:ykos_kitchen/model/order.dart';
 
-
-
 class FireFirestore {
   static var firestore = FirebaseFirestore.instance;
   final auth = FireAuth.auth;
@@ -78,43 +76,46 @@ class FireFirestore {
       rethrow;
     }
   }
+
   //Update Adress
-    Future<void> updateAdress(Adress updatedItem) async {
+  Future<void> updateAdress(Adress updatedItem) async {
     try {
-      await userRef.collection('adress').doc(updatedItem.id).update(updatedItem.toJson());
+      await userRef
+          .collection('adress')
+          .doc(updatedItem.id)
+          .update(updatedItem.toJson());
     } on FirebaseException {
       rethrow;
     }
   }
 
-
   //Order
 
-//Add Order
-Future<void> addOrder(Order item) async {
-  try {
-    await userRef.collection('orders').doc(item.orderId).set(item.toJson());
-  } on FirebaseException {
-    rethrow;
+  //Add Order
+  Future<void> addOrder(Order item) async {
+    try {
+      await userRef.collection('orders').doc(item.orderId).set(item.toJson());
+    } on FirebaseException {
+      rethrow;
+    }
   }
-}
 
-//Fetch Orders
-Future<List<Order>> fetchOrders() async {
-  try {
-    final snapshot = await userRef.collection('orders').get();
-    return snapshot.docs.map((doc) => Order.fromJson(doc.data())).toList();
-  } on FirebaseException {
-    rethrow;
+  //Fetch Orders
+  Future<List<Order>> fetchOrders() async {
+    try {
+      final snapshot = await userRef.collection('orders').get();
+      return snapshot.docs.map((doc) => Order.fromJson(doc.data())).toList();
+    } on FirebaseException {
+      rethrow;
+    }
   }
-}
 
-//Remove Order (optional)
-Future<void> removeOrder(Order item) async {
-  try {
-    await userRef.collection('orders').doc(item.orderId).delete();
-  } on FirebaseException {
-    rethrow;
+  //Remove Order (optional)
+  Future<void> removeOrder(Order item) async {
+    try {
+      await userRef.collection('orders').doc(item.orderId).delete();
+    } on FirebaseException {
+      rethrow;
+    }
   }
-}
 }
