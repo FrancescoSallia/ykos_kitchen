@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:ykos_kitchen/model/adress_symbol.dart';
 import 'package:ykos_kitchen/model/category.dart';
 import 'package:ykos_kitchen/model/extra.dart';
@@ -17,6 +18,7 @@ import 'package:ykos_kitchen/model/user.dart';
 import 'package:ykos_kitchen/model/food.dart';
 import 'package:ykos_kitchen/enum/category_enum.dart';
 import 'package:ykos_kitchen/model/order.dart';
+import 'package:ykos_kitchen/viewmodel/viewmodel_orders.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -29,7 +31,16 @@ class _HomePageState extends State<HomePage> {
   var timeRepo = TimeRepository();
 
   @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ViewmodelOrders>();
+    });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final viewModelOrders = context.read<ViewmodelOrders>();
     final List<Order> dummyOrdersNew = [
       // 🧾 1️⃣ Lieferung – Bestellung eingegangen
       Order(
@@ -115,7 +126,6 @@ class _HomePageState extends State<HomePage> {
         orderStatus: OrderStatusEnum.recieved,
       ),
     ];
-
     final List<Order> dummyOrdersProgress = [];
     final List<Order> dummyOrdersOnWay = [];
     final List<Order> dummyOrdersDelivered = [];
@@ -223,14 +233,28 @@ class _HomePageState extends State<HomePage> {
           final order = list[index];
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: orderedItem(order, context),
+            child: orderedItem(
+              order,
+              context,
+              () {
+                //arrowUpOnTap
+              },
+              () {
+                //arrowDownOnTap
+              },
+            ),
           );
         }
       },
     );
   }
 
-  Container orderedItem(Order order, BuildContext context) {
+  Container orderedItem(
+    Order order,
+    BuildContext context,
+    Function() arrowUpOnTap,
+    Function() arrowDownOnTap,
+  ) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -307,20 +331,18 @@ class _HomePageState extends State<HomePage> {
             children: [
               Visibility(
                 visible: true,
-                child: arrowIconButton(() {
-                  setState(() {
-                    print("UP Button");
-                  });
-                }, Icons.arrow_drop_up_rounded),
+                child: arrowIconButton(
+                  arrowUpOnTap,
+                  Icons.arrow_drop_up_rounded,
+                ),
               ),
               SizedBox(width: 30),
               Visibility(
                 visible: true,
-                child: arrowIconButton(() {
-                  setState(() {
-                    print("Down Button");
-                  });
-                }, Icons.arrow_drop_down_rounded),
+                child: arrowIconButton(
+                  arrowDownOnTap,
+                  Icons.arrow_drop_down_rounded,
+                ),
               ),
             ],
           ),
