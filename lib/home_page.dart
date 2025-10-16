@@ -1,22 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:ykos_kitchen/model/adress_symbol.dart';
-import 'package:ykos_kitchen/model/category.dart';
-import 'package:ykos_kitchen/model/extra.dart';
 import 'package:ykos_kitchen/repository/time_repository.dart';
 import 'package:ykos_kitchen/theme/colors.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:ykos_kitchen/enum/order_status_enum.dart';
-import 'package:ykos_kitchen/model/adress.dart';
-import 'package:ykos_kitchen/model/order_summary.dart';
-import 'package:ykos_kitchen/model/payment.dart';
-import 'package:ykos_kitchen/model/user.dart';
-import 'package:ykos_kitchen/model/food.dart';
-import 'package:ykos_kitchen/enum/category_enum.dart';
 import 'package:ykos_kitchen/model/order.dart';
 import 'package:ykos_kitchen/viewmodel/viewmodel_orders.dart';
 
@@ -35,100 +24,99 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ViewmodelOrders>();
     });
+
+    // final List<Order> dummyOrdersNew = [
+    //   // 🧾 1️⃣ Lieferung – Bestellung eingegangen
+    //   Order(
+    //     pickUpUser: null,
+    //     isDelivery: true,
+    //     deliveryAdress: Adress(
+    //       name: "Mara Herrmann",
+    //       telefon: "0176543524",
+    //       street: "Müllerstraße",
+    //       houseNumber: "12a",
+    //       plz: "13437",
+    //       place: "Berlin",
+    //       icon: AdressSymbol(name: "Home", iconData: Icons.home),
+    //       information: "bitte nicht klingeln ich komme denn runter",
+    //     ),
+    //     selectedTime: TimeOfDay(hour: 17, minute: 45),
+    //     selectedDate: DateTime.now(),
+    //     payment: Payment(name: "Apple Pay", img: "assets/images/applepay.png"),
+    //     orderSummary: OrderSummary(
+    //       foods: [
+    //         Food(
+    //           id: "f6",
+    //           name: "Pizza Margherita",
+    //           price: 6.90,
+    //           extras: [
+    //             Extra(
+    //               name: "Peperoni",
+    //               price: 1.50,
+    //               extraCategory: CategoryEnum.pizza,
+    //             ),
+    //           ],
+    //           artikelNr: '0001',
+    //           description: 'salat mit essif',
+    //           imgAsset: 'lib/img/pizza4.png',
+    //           labels: ["lib/img/peper.png"],
+    //           allergens: ["A", "D"],
+    //           category: Category(
+    //             name: CategoryEnum.pizza.label,
+    //             categoryImg: "lib/img/pizza_category_icon.png",
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //     orderStatus: OrderStatusEnum.recieved,
+    //   ),
+
+    //   Order(
+    //     pickUpUser: User(
+    //       name: "Tom",
+    //       lastName: "Riddle",
+    //       telefon: "0165234589",
+    //     ),
+    //     isDelivery: false,
+    //     deliveryAdress: null,
+    //     selectedTime: TimeOfDay(hour: 17, minute: 45),
+    //     selectedDate: DateTime.now(),
+    //     payment: Payment(name: "Apple Pay", img: "assets/images/applepay.png"),
+    //     orderSummary: OrderSummary(
+    //       foods: [
+    //         Food(
+    //           id: "f6",
+    //           name: "Pizza Margherita",
+    //           price: 6.90,
+    //           extras: [
+    //             Extra(
+    //               name: "Peperoni",
+    //               price: 1.50,
+    //               extraCategory: CategoryEnum.pizza,
+    //             ),
+    //           ],
+    //           artikelNr: '0001',
+    //           description: 'salat mit essif',
+    //           imgAsset: 'lib/img/pizza4.png',
+    //           labels: ["lib/img/peper.png"],
+    //           allergens: ["A", "D"],
+    //           category: Category(
+    //             name: CategoryEnum.pizza.label,
+    //             categoryImg: "lib/img/pizza_category_icon.png",
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //     orderStatus: OrderStatusEnum.recieved,
+    //   ),
+    // ];
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModelOrders = context.read<ViewmodelOrders>();
-    final List<Order> dummyOrdersNew = [
-      // 🧾 1️⃣ Lieferung – Bestellung eingegangen
-      Order(
-        pickUpUser: null,
-        isDelivery: true,
-        deliveryAdress: Adress(
-          name: "Mara Herrmann",
-          telefon: "0176543524",
-          street: "Müllerstraße",
-          houseNumber: "12a",
-          plz: "13437",
-          place: "Berlin",
-          icon: AdressSymbol(name: "Home", iconData: Icons.home),
-          information: "bitte nicht klingeln ich komme denn runter",
-        ),
-        selectedTime: TimeOfDay(hour: 17, minute: 45),
-        selectedDate: DateTime.now(),
-        payment: Payment(name: "Apple Pay", img: "assets/images/applepay.png"),
-        orderSummary: OrderSummary(
-          foods: [
-            Food(
-              id: "f6",
-              name: "Pizza Margherita",
-              price: 6.90,
-              extras: [
-                Extra(
-                  name: "Peperoni",
-                  price: 1.50,
-                  extraCategory: CategoryEnum.pizza,
-                ),
-              ],
-              artikelNr: '0001',
-              description: 'salat mit essif',
-              imgAsset: 'lib/img/pizza4.png',
-              labels: ["lib/img/peper.png"],
-              allergens: ["A", "D"],
-              category: Category(
-                name: CategoryEnum.pizza.label,
-                categoryImg: "lib/img/pizza_category_icon.png",
-              ),
-            ),
-          ],
-        ),
-        orderStatus: OrderStatusEnum.delivered,
-      ),
-
-      Order(
-        pickUpUser: User(
-          name: "Tom",
-          lastName: "Riddle",
-          telefon: "0165234589",
-        ),
-        isDelivery: false,
-        deliveryAdress: null,
-        selectedTime: TimeOfDay(hour: 17, minute: 45),
-        selectedDate: DateTime.now(),
-        payment: Payment(name: "Apple Pay", img: "assets/images/applepay.png"),
-        orderSummary: OrderSummary(
-          foods: [
-            Food(
-              id: "f6",
-              name: "Pizza Margherita",
-              price: 6.90,
-              extras: [
-                Extra(
-                  name: "Peperoni",
-                  price: 1.50,
-                  extraCategory: CategoryEnum.pizza,
-                ),
-              ],
-              artikelNr: '0001',
-              description: 'salat mit essif',
-              imgAsset: 'lib/img/pizza4.png',
-              labels: ["lib/img/peper.png"],
-              allergens: ["A", "D"],
-              category: Category(
-                name: CategoryEnum.pizza.label,
-                categoryImg: "lib/img/pizza_category_icon.png",
-              ),
-            ),
-          ],
-        ),
-        orderStatus: OrderStatusEnum.recieved,
-      ),
-    ];
-    final List<Order> dummyOrdersProgress = [];
-    final List<Order> dummyOrdersOnWay = [];
-    final List<Order> dummyOrdersDelivered = [];
+    final viewModelOrders = context.watch<ViewmodelOrders>();
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 248, 248, 248),
       appBar: AppBar(
@@ -194,24 +182,44 @@ class _HomePageState extends State<HomePage> {
             Divider(thickness: 2, height: 0, color: Colors.grey),
 
             //New Orders
-            orderProgressTitle("NEU", dummyOrdersNew.length),
-            listView(dummyOrdersNew, "Neue Aufträge hier!"),
+            orderProgressTitle(
+              "NEU",
+              viewModelOrders.orderLists[OrderStatusEnum.recieved]?.length ?? 0,
+            ),
+            listView(
+              viewModelOrders.orderLists[OrderStatusEnum.recieved] ?? [],
+              "Neue Aufträge hier!",
+            ),
 
             //Progress Orders (KÜCHE)
-            orderProgressTitle("KÜCHE", dummyOrdersProgress.length),
+            orderProgressTitle(
+              "KÜCHE",
+              viewModelOrders.orderLists[OrderStatusEnum.inProgress]?.length ??
+                  0,
+            ),
             listView(
-              dummyOrdersProgress,
+              viewModelOrders.orderLists[OrderStatusEnum.inProgress] ?? [],
               "Hier werden die Gerichte von der Bestellung zubereitet.",
             ),
 
             //OnWay Orders
-            orderProgressTitle("UNTERWEGS", dummyOrdersOnWay.length),
-            listView(dummyOrdersOnWay, "Die Bestellungen sind hier Unterwegs."),
+            orderProgressTitle(
+              "UNTERWEGS",
+              viewModelOrders.orderLists[OrderStatusEnum.onWay]?.length ?? 0,
+            ),
+            listView(
+              viewModelOrders.orderLists[OrderStatusEnum.onWay] ?? [],
+              "Die Bestellungen sind hier Unterwegs.",
+            ),
 
             //Delivered Orders
-            orderProgressTitle("GELIEFERT", dummyOrdersDelivered.length),
+            orderProgressTitle(
+              "GELIEFERT",
+              viewModelOrders.orderLists[OrderStatusEnum.delivered]?.length ??
+                  0,
+            ),
             listView(
-              dummyOrdersDelivered,
+              viewModelOrders.orderLists[OrderStatusEnum.delivered] ?? [],
               "Alle gelieferten Bestellungen befinden sich hier.",
             ),
             SizedBox(height: 100),
@@ -237,10 +245,10 @@ class _HomePageState extends State<HomePage> {
               order,
               context,
               () {
-                //arrowUpOnTap
+                context.read<ViewmodelOrders>().moveOrderBackward(order);
               },
               () {
-                //arrowDownOnTap
+                context.read<ViewmodelOrders>().moveOrderForward(order);
               },
             ),
           );
@@ -330,7 +338,9 @@ class _HomePageState extends State<HomePage> {
           Row(
             children: [
               Visibility(
-                visible: true,
+                visible: order.orderStatus != OrderStatusEnum.recieved
+                    ? true
+                    : false,
                 child: arrowIconButton(
                   arrowUpOnTap,
                   Icons.arrow_drop_up_rounded,
@@ -338,7 +348,9 @@ class _HomePageState extends State<HomePage> {
               ),
               SizedBox(width: 30),
               Visibility(
-                visible: true,
+                visible: order.orderStatus != OrderStatusEnum.delivered
+                    ? true
+                    : false,
                 child: arrowIconButton(
                   arrowDownOnTap,
                   Icons.arrow_drop_down_rounded,

@@ -91,4 +91,24 @@ class Order {
       ),
     );
   }
+
+  Order copyWith({
+    OrderStatusEnum? orderStatus,
+    TimeOfDay? selectedTime,
+    DateTime? selectedDate,
+  }) {
+    return Order(
+      pickUpUser: pickUpUser,
+      orderId: orderId,
+      currentTime: currentTime,
+      currentDate: currentDate,
+      isDelivery: isDelivery,
+      deliveryAdress: deliveryAdress,
+      selectedTime: selectedTime ?? this.selectedTime,
+      selectedDate: selectedDate ?? this.selectedDate,
+      payment: payment,
+      orderSummary: orderSummary,
+      orderStatus: orderStatus ?? this.orderStatus,
+    );
+  }
 }
