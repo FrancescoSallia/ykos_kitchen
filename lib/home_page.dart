@@ -1,7 +1,22 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:lottie/lottie.dart';
+import 'package:ykos_kitchen/model/adress_symbol.dart';
+import 'package:ykos_kitchen/model/category.dart';
+import 'package:ykos_kitchen/model/extra.dart';
+import 'package:ykos_kitchen/repository/time_repository.dart';
 import 'package:ykos_kitchen/theme/colors.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:ykos_kitchen/enum/order_status_enum.dart';
+import 'package:ykos_kitchen/model/adress.dart';
+import 'package:ykos_kitchen/model/order_summary.dart';
+import 'package:ykos_kitchen/model/payment.dart';
+import 'package:ykos_kitchen/model/user.dart';
+import 'package:ykos_kitchen/model/food.dart';
+import 'package:ykos_kitchen/enum/category_enum.dart';
+import 'package:ykos_kitchen/model/order.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,10 +26,100 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  var timeRepo = TimeRepository();
+
   @override
   Widget build(BuildContext context) {
+    final List<Order> dummyOrders = [
+      // 🧾 1️⃣ Lieferung – Bestellung eingegangen
+      Order(
+        pickUpUser: null,
+        isDelivery: true,
+        deliveryAdress: Adress(
+          name: "Mara Herrmann",
+          telefon: "0176543524",
+          street: "Müllerstraße",
+          houseNumber: "12a",
+          plz: "13437",
+          place: "Berlin",
+          icon: AdressSymbol(name: "Home", iconData: Icons.home),
+          information: "bitte nicht klingeln ich komme denn runter",
+        ),
+        selectedTime: TimeOfDay(hour: 17, minute: 45),
+        selectedDate: DateTime.now(),
+        payment: Payment(name: "Apple Pay", img: "assets/images/applepay.png"),
+        orderSummary: OrderSummary(
+          foods: [
+            Food(
+              id: "f6",
+              name: "Pizza Margherita",
+              price: 6.90,
+              extras: [
+                Extra(
+                  name: "Peperoni",
+                  price: 1.50,
+                  extraCategory: CategoryEnum.pizza,
+                ),
+              ],
+              artikelNr: '0001',
+              description: 'salat mit essif',
+              imgAsset: 'lib/img/pizza4.png',
+              labels: ["lib/img/peper.png"],
+              allergens: ["A", "D"],
+              category: Category(
+                name: CategoryEnum.pizza.label,
+                categoryImg: "lib/img/pizza_category_icon.png",
+              ),
+            ),
+          ],
+        ),
+        orderStatus: OrderStatusEnum.delivered,
+      ),
+
+      Order(
+        pickUpUser: User(
+          name: "Tom",
+          lastName: "Riddle",
+          telefon: "0165234589",
+        ),
+        isDelivery: false,
+        deliveryAdress: null,
+        selectedTime: TimeOfDay(hour: 17, minute: 45),
+        selectedDate: DateTime.now(),
+        payment: Payment(name: "Apple Pay", img: "assets/images/applepay.png"),
+        orderSummary: OrderSummary(
+          foods: [
+            Food(
+              id: "f6",
+              name: "Pizza Margherita",
+              price: 6.90,
+              extras: [
+                Extra(
+                  name: "Peperoni",
+                  price: 1.50,
+                  extraCategory: CategoryEnum.pizza,
+                ),
+              ],
+              artikelNr: '0001',
+              description: 'salat mit essif',
+              imgAsset: 'lib/img/pizza4.png',
+              labels: ["lib/img/peper.png"],
+              allergens: ["A", "D"],
+              category: Category(
+                name: CategoryEnum.pizza.label,
+                categoryImg: "lib/img/pizza_category_icon.png",
+              ),
+            ),
+          ],
+        ),
+        orderStatus: OrderStatusEnum.recieved,
+      ),
+    ];
+
+    List<String> testList = ["test1", "test2", "test3", "test4", "test5"];
+
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 240, 240, 240),
+      backgroundColor: const Color.fromARGB(255, 248, 248, 248),
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         centerTitle: true,
@@ -76,6 +181,124 @@ class _HomePageState extends State<HomePage> {
             subTitle(),
             Divider(thickness: 2, height: 0, color: Colors.grey),
 
+            ListView.builder(
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: dummyOrders.length,
+              itemBuilder: (context, index) {
+                final order = dummyOrders[index];
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                  margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    border: Border.all(width: 1, color: Colors.black),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: 70,
+                        height: 70,
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            border: Border.all(width: 1, color: Colors.black),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Lottie.asset(
+                            animate: true,
+                            order.orderStatus.lottieAnimation,
+                            repeat: true,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text("Bestellt am: "),
+                                timeRepo.dateDayMonthYearToString(
+                                  order.currentDate,
+                                ),
+                                SizedBox(width: 10),
+                                timeRepo.timeToString(
+                                  order.currentTime,
+                                  context,
+                                ),
+                              ],
+                            ),
+                            Text(
+                              order.isDelivery
+                                  ? order.deliveryAdress!.name
+                                  : "${order.pickUpUser?.name} ${order.pickUpUser?.lastName}",
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+
+                            // Text(
+                            //   order.orderStatus.labelText,
+                            //   style: GoogleFonts.inter(
+                            //     color: Colors.green,
+                            //     fontWeight: FontWeight.w500,
+                            //   ),
+                            // ),
+                            Text(
+                              order.isDelivery ? "Lieferung" : "Abholung",
+                              style: GoogleFonts.inter(
+                                color: Colors.deepOrangeAccent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              order.isDelivery ? "Zustellung" : "Abholung",
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            timeRepo.dateDayMonthYearToString(
+                              order.selectedDate,
+                            ),
+                            SizedBox(width: 10),
+                            timeRepo.timeToString(order.selectedTime, context),
+                          ],
+                        ),
+                      ),
+
+                      Row(
+                        children: [
+                          arrowIconButton(() {
+                            setState(() {
+                              print("UP Button");
+                            });
+                          }, Icons.arrow_drop_up_rounded),
+                          SizedBox(width: 30),
+                          arrowIconButton(() {
+                            setState(() {
+                              print("Down Button");
+                            });
+                          }, Icons.arrow_drop_down_rounded),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
             orderProgressTitle("NEU", 0),
             dottedBox("Neue Aufträge hier!"),
             SizedBox(height: 25),
@@ -90,6 +313,22 @@ class _HomePageState extends State<HomePage> {
             orderProgressTitle("GELIEFERT", 0),
             dottedBox("Alle gelieferten Bestellungen befinden sich hier."),
           ],
+        ),
+      ),
+    );
+  }
+
+  Material arrowIconButton(Function() onTap, IconData iconData) {
+    return Material(
+      color: Colors.amber, // Hintergrundfarbe
+      borderRadius: BorderRadius.circular(100),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(100),
+        onTap: onTap,
+        child: SizedBox(
+          width: 30,
+          height: 30,
+          child: Icon(iconData, color: Colors.white, size: 30),
         ),
       ),
     );
