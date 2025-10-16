@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Order> dummyOrders = [
+    final List<Order> dummyOrdersNew = [
       // 🧾 1️⃣ Lieferung – Bestellung eingegangen
       Order(
         pickUpUser: null,
@@ -116,12 +116,14 @@ class _HomePageState extends State<HomePage> {
       ),
     ];
 
-    List<String> testList = ["test1", "test2", "test3", "test4", "test5"];
-
+    final List<Order> dummyOrdersProgress = [];
+    final List<Order> dummyOrdersOnWay = [];
+    final List<Order> dummyOrdersDelivered = [];
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 248, 248, 248),
       appBar: AppBar(
         backgroundColor: AppColors.primary,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -181,139 +183,148 @@ class _HomePageState extends State<HomePage> {
             subTitle(),
             Divider(thickness: 2, height: 0, color: Colors.grey),
 
-            ListView.builder(
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: dummyOrders.length,
-              itemBuilder: (context, index) {
-                final order = dummyOrders[index];
-                return Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                  margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.15),
-                    border: Border.all(width: 1, color: Colors.black),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: 70,
-                        height: 70,
-                        child: Container(
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.transparent,
-                            border: Border.all(width: 1, color: Colors.black),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Lottie.asset(
-                            animate: true,
-                            order.orderStatus.lottieAnimation,
-                            repeat: true,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 15),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text("Bestellt am: "),
-                                timeRepo.dateDayMonthYearToString(
-                                  order.currentDate,
-                                ),
-                                SizedBox(width: 10),
-                                timeRepo.timeToString(
-                                  order.currentTime,
-                                  context,
-                                ),
-                              ],
-                            ),
-                            Text(
-                              order.isDelivery
-                                  ? order.deliveryAdress!.name
-                                  : "${order.pickUpUser?.name} ${order.pickUpUser?.lastName}",
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+            //New Orders
+            orderProgressTitle("NEU", dummyOrdersNew.length),
+            listView(dummyOrdersNew, "Neue Aufträge hier!"),
 
-                            // Text(
-                            //   order.orderStatus.labelText,
-                            //   style: GoogleFonts.inter(
-                            //     color: Colors.green,
-                            //     fontWeight: FontWeight.w500,
-                            //   ),
-                            // ),
-                            Text(
-                              order.isDelivery ? "Lieferung" : "Abholung",
-                              style: GoogleFonts.inter(
-                                color: Colors.deepOrangeAccent,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(
-                              order.isDelivery ? "Zustellung" : "Abholung",
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            timeRepo.dateDayMonthYearToString(
-                              order.selectedDate,
-                            ),
-                            SizedBox(width: 10),
-                            timeRepo.timeToString(order.selectedTime, context),
-                          ],
-                        ),
-                      ),
-
-                      Row(
-                        children: [
-                          arrowIconButton(() {
-                            setState(() {
-                              print("UP Button");
-                            });
-                          }, Icons.arrow_drop_up_rounded),
-                          SizedBox(width: 30),
-                          arrowIconButton(() {
-                            setState(() {
-                              print("Down Button");
-                            });
-                          }, Icons.arrow_drop_down_rounded),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            orderProgressTitle("NEU", 0),
-            dottedBox("Neue Aufträge hier!"),
-            SizedBox(height: 25),
-            orderProgressTitle("KÜCHE", 0),
-            dottedBox(
+            //Progress Orders (KÜCHE)
+            orderProgressTitle("KÜCHE", dummyOrdersProgress.length),
+            listView(
+              dummyOrdersProgress,
               "Hier werden die Gerichte von der Bestellung zubereitet.",
             ),
-            SizedBox(height: 25),
-            orderProgressTitle("UNTERWEGS", 0),
-            dottedBox("Die Bestellungen sind hier Unterwegs."),
-            SizedBox(height: 25),
-            orderProgressTitle("GELIEFERT", 0),
-            dottedBox("Alle gelieferten Bestellungen befinden sich hier."),
+
+            //OnWay Orders
+            orderProgressTitle("UNTERWEGS", dummyOrdersOnWay.length),
+            listView(dummyOrdersOnWay, "Die Bestellungen sind hier Unterwegs."),
+
+            //Delivered Orders
+            orderProgressTitle("GELIEFERT", dummyOrdersDelivered.length),
+            listView(
+              dummyOrdersDelivered,
+              "Alle gelieferten Bestellungen befinden sich hier.",
+            ),
+            SizedBox(height: 100),
           ],
         ),
+      ),
+    );
+  }
+
+  ListView listView(List<Order> list, String dottedBoxText) {
+    return ListView.builder(
+      physics: NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: list.isNotEmpty ? list.length : 1,
+      itemBuilder: (context, index) {
+        if (list.isEmpty) {
+          return dottedBox(dottedBoxText);
+        } else {
+          final order = list[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: orderedItem(order, context),
+          );
+        }
+      },
+    );
+  }
+
+  Container orderedItem(Order order, BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.15),
+        border: Border.all(width: 1, color: Colors.black),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          SizedBox(
+            width: 70,
+            height: 70,
+            child: Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border.all(width: 1, color: Colors.black),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Lottie.asset(
+                animate: true,
+                order.orderStatus.lottieAnimation,
+                repeat: true,
+              ),
+            ),
+          ),
+          SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text("Bestellt am: "),
+                    timeRepo.dateDayMonthYearToString(order.currentDate),
+                    SizedBox(width: 10),
+                    timeRepo.timeToString(order.currentTime, context),
+                  ],
+                ),
+                Text(
+                  order.isDelivery
+                      ? order.deliveryAdress!.name
+                      : "${order.pickUpUser?.name} ${order.pickUpUser?.lastName}",
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  order.isDelivery ? "Lieferung" : "Abholung",
+                  style: GoogleFonts.inter(
+                    color: Colors.deepOrangeAccent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                Text(
+                  order.isDelivery ? "Zustellung" : "Abholung",
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+                timeRepo.dateDayMonthYearToString(order.selectedDate),
+                SizedBox(width: 10),
+                timeRepo.timeToString(order.selectedTime, context),
+              ],
+            ),
+          ),
+
+          Row(
+            children: [
+              Visibility(
+                visible: true,
+                child: arrowIconButton(() {
+                  setState(() {
+                    print("UP Button");
+                  });
+                }, Icons.arrow_drop_up_rounded),
+              ),
+              SizedBox(width: 30),
+              Visibility(
+                visible: true,
+                child: arrowIconButton(() {
+                  setState(() {
+                    print("Down Button");
+                  });
+                }, Icons.arrow_drop_down_rounded),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
