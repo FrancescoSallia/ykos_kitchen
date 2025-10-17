@@ -10,6 +10,7 @@ import 'package:ykos_kitchen/model/user.dart';
 class Order {
   final User? pickUpUser;
   final String orderId;
+  final String userId;
   final TimeOfDay currentTime;
   final DateTime currentDate;
   final bool isDelivery;
@@ -23,6 +24,7 @@ class Order {
   Order({
     required this.pickUpUser,
     String? orderId,
+    required this.userId,
     TimeOfDay? currentTime,
     DateTime? currentDate,
     OrderStatusEnum? orderStatus,
@@ -41,6 +43,7 @@ class Order {
     return {
       "pickUpUser": pickUpUser?.toJson(),
       "orderId": orderId,
+      "userId": userId,
       "currentTime": {"hour": currentTime.hour, "minute": currentTime.minute},
       "currentDate": Timestamp.fromDate(currentDate),
       "isDelivery": isDelivery,
@@ -63,6 +66,7 @@ class Order {
           ? User.fromJson(json["pickUpUser"])
           : null,
       orderId: json["orderId"],
+      userId: json["userId"],
       currentTime: json["currentTime"] != null
           ? TimeOfDay(
               hour: json["currentTime"]["hour"],
@@ -96,10 +100,12 @@ class Order {
     OrderStatusEnum? orderStatus,
     TimeOfDay? selectedTime,
     DateTime? selectedDate,
+    TimeOfDay? currentTime
   }) {
     return Order(
       pickUpUser: pickUpUser,
       orderId: orderId,
+      userId: userId,
       currentTime: currentTime,
       currentDate: currentDate,
       isDelivery: isDelivery,

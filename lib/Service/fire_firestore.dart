@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:ykos_kitchen/Service/fire_auth.dart';
+import 'package:ykos_kitchen/enum/order_status_enum.dart';
 import 'package:ykos_kitchen/model/order.dart';
 
 class FireFirestore {
@@ -22,26 +24,47 @@ class FireFirestore {
   //Order
 
   // Stream für alle Bestellungen global
-  Stream<List<Order>> ordersStream() {
+  Stream<List<Order>> fetchOrdersStream() {
     return FirebaseFirestore.instance
         .collectionGroup('all_orders') // hört auf alle Bestellungen aller User
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Order.fromJson(doc.data())).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Order.fromJson(doc.data())).toList(),
+        );
   }
-  //Fetch Orders
-  // Future<List<Order>> fetchOrders() async {
-  //   try {
-  //     final snapshot = await FirebaseFirestore.instance
-  //         .collectionGroup(
-  //           "all_orders",
-  //         ) // Gibt dir direkt die Collection die du brauchst zurück ohne uid's!
-  //         .get();
-  //     return snapshot.docs.map((doc) => Order.fromJson(doc.data())).toList();
-  //   } on FirebaseException {
-  //     rethrow;
-  //   }
-  // }
+
+  Future<void> updateOrderStatus(
+    Order order,
+    OrderStatusEnum newStatus,
+    TimeOfDay currentTime,
+  ) async {
+    try {
+      final updatedOrder = order.copyWith(
+        orderStatus: newStatus,
+        currentTime: currentTime, // optional: aktuelles Änderungsdatum
+      );
+
+      // 1️⃣ Update in der User-spezifischen Sammlung
+      await firestore
+          .collection("ykos_bbq_chicken")
+          .doc(order.userId)
+          .collection("orders")
+          .doc(order.orderId)
+          .update(updatedOrder.toJson());
+
+      // 2️⃣ Update in der globalen Sammlung
+      await firestore
+          .collection("yokos_kitchen")
+          .doc(order.userId) 
+          .collection("all_orders")
+          .doc(order.orderId)
+          .update(updatedOrder.toJson());
+    } catch (e) {
+      debugPrint("🔥 Fehler beim Aktualisieren der Bestellung: $e");
+      rethrow;
+    }
+  }
 
   //Remove Order (optional)
   Future<void> removeOrder(Order item) async {

@@ -5,15 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:ykos_kitchen/Service/fire_firestore.dart';
 import 'package:ykos_kitchen/enum/order_status_enum.dart';
 import 'package:ykos_kitchen/model/order.dart';
-import 'package:ykos_kitchen/model/adress.dart';
-import 'package:ykos_kitchen/model/order_summary.dart';
-import 'package:ykos_kitchen/model/payment.dart';
-import 'package:ykos_kitchen/model/user.dart';
-import 'package:ykos_kitchen/model/food.dart';
-import 'package:ykos_kitchen/enum/category_enum.dart';
-import 'package:ykos_kitchen/model/adress_symbol.dart';
-import 'package:ykos_kitchen/model/category.dart';
-import 'package:ykos_kitchen/model/extra.dart';
 
 class ViewmodelOrders extends ChangeNotifier {
   static var firestore = FireFirestore();
@@ -26,7 +17,6 @@ class ViewmodelOrders extends ChangeNotifier {
 
   late Map<OrderStatusEnum, List<Order>> orderLists;
   StreamSubscription? _ordersSub;
-
 
   ViewmodelOrders() {
     orderLists = {
@@ -127,44 +117,70 @@ class ViewmodelOrders extends ChangeNotifier {
     _listenToOrders();
   }
   // 👇 Bestellung in nächste Phase verschieben
-  void moveOrderForward(Order order) {
+  void moveOrderForward(Order order) async {
     final currentStatus = order.orderStatus;
     final nextIndex = currentStatus.statusIndex + 1;
 
     if (nextIndex < OrderStatusEnum.values.length) {
       final nextStatus = OrderStatusEnum.values[nextIndex];
+
+      // lokal updaten
       orderLists[currentStatus]?.remove(order);
-      orderLists[nextStatus]?.add(order.copyWith(orderStatus: nextStatus));
+      final updatedOrder = order.copyWith(orderStatus: nextStatus);
+      orderLists[nextStatus]?.add(updatedOrder);
       notifyListeners();
+
+      // Firestore update
+      await firestore.updateOrderStatus(
+        order,
+        nextStatus,
+        TimeOfDay.now(),
+      ); //TODO: die zeit muss in eine variable sein damit man sie flexible ändern kann
     }
   }
 
   // 👇 Bestellung zurück verschieben
-  void moveOrderBackward(Order order) {
+  void moveOrderBackward(Order order) async {
     final currentStatus = order.orderStatus;
     final prevIndex = currentStatus.statusIndex - 1;
 
     if (prevIndex >= 0) {
       final prevStatus = OrderStatusEnum.values[prevIndex];
+
+      // lokal updaten
       orderLists[currentStatus]?.remove(order);
-      orderLists[prevStatus]?.add(order.copyWith(orderStatus: prevStatus));
+      final updatedOrder = order.copyWith(orderStatus: prevStatus);
+      orderLists[prevStatus]?.add(updatedOrder);
       notifyListeners();
+
+      // Firestore update
+      await firestore.updateOrderStatus(
+        order,
+        prevStatus,
+        TimeOfDay.now(),
+      ); //TODO: die zeit muss in eine variable sein damit man sie flexible ändern kann
     }
   }
 
-    void _listenToOrders() {
-      _isLoading = true;
+  void _listenToOrders() {
+    _isLoading = true;
     notifyListeners();
 
-    _ordersSub = firestore.ordersStream().listen(
+    _ordersSub = firestore.fetchOrdersStream().listen(
       (orders) {
-        // Alle Orders zunächst in "recieved"
-        orderLists = {
-          OrderStatusEnum.recieved: orders,
+        // Bestellungen nach Status gruppieren
+        final Map<OrderStatusEnum, List<Order>> grouped = {
+          OrderStatusEnum.recieved: [],
           OrderStatusEnum.inProgress: [],
           OrderStatusEnum.onWay: [],
           OrderStatusEnum.delivered: [],
         };
+
+        for (final order in orders) {
+          grouped[order.orderStatus]?.add(order);
+        }
+
+        orderLists = grouped;
         _isLoading = false;
         notifyListeners();
       },
@@ -180,6 +196,5 @@ class ViewmodelOrders extends ChangeNotifier {
   void dispose() {
     _ordersSub?.cancel();
     super.dispose();
-  
-}
+  }
 }
