@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ykos_kitchen/Service/fire_firestore.dart';
@@ -16,108 +18,113 @@ import 'package:ykos_kitchen/model/extra.dart';
 class ViewmodelOrders extends ChangeNotifier {
   static var firestore = FireFirestore();
 
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
   String? _error;
   String? get error => _error;
 
   late Map<OrderStatusEnum, List<Order>> orderLists;
+  StreamSubscription? _ordersSub;
+
 
   ViewmodelOrders() {
     orderLists = {
-      //TODO: Replace Dummy list in recieved with real list !
       OrderStatusEnum.recieved: [
-        Order(
-          pickUpUser: null,
-          isDelivery: true,
-          deliveryAdress: Adress(
-            name: "Mara Herrmann",
-            telefon: "0176543524",
-            street: "Müllerstraße",
-            houseNumber: "12a",
-            plz: "13437",
-            place: "Berlin",
-            icon: AdressSymbol(name: "Home", iconData: Icons.home),
-            information: "bitte nicht klingeln ich komme denn runter",
-          ),
-          selectedTime: TimeOfDay(hour: 17, minute: 45),
-          selectedDate: DateTime.now(),
-          payment: Payment(
-            name: "Apple Pay",
-            img: "assets/images/applepay.png",
-          ),
-          orderSummary: OrderSummary(
-            foods: [
-              Food(
-                id: "f6",
-                name: "Pizza Margherita",
-                price: 6.90,
-                extras: [
-                  Extra(
-                    name: "Peperoni",
-                    price: 1.50,
-                    extraCategory: CategoryEnum.pizza,
-                  ),
-                ],
-                artikelNr: '0001',
-                description: 'salat mit essif',
-                imgAsset: 'lib/img/pizza4.png',
-                labels: ["lib/img/peper.png"],
-                allergens: ["A", "D"],
-                category: Category(
-                  name: CategoryEnum.pizza.label,
-                  categoryImg: "lib/img/pizza_category_icon.png",
-                ),
-              ),
-            ],
-          ),
-          orderStatus: OrderStatusEnum.recieved,
-        ),
+        // Order(
+        //   pickUpUser: null,
+        //   isDelivery: true,
+        //   deliveryAdress: Adress(
+        //     name: "Mara Herrmann",
+        //     telefon: "0176543524",
+        //     street: "Müllerstraße",
+        //     houseNumber: "12a",
+        //     plz: "13437",
+        //     place: "Berlin",
+        //     icon: AdressSymbol(name: "Home", iconData: Icons.home),
+        //     information: "bitte nicht klingeln ich komme denn runter",
+        //   ),
+        //   selectedTime: TimeOfDay(hour: 17, minute: 45),
+        //   selectedDate: DateTime.now(),
+        //   payment: Payment(
+        //     name: "Apple Pay",
+        //     img: "assets/images/applepay.png",
+        //   ),
+        //   orderSummary: OrderSummary(
+        //     foods: [
+        //       Food(
+        //         id: "f6",
+        //         name: "Pizza Margherita",
+        //         price: 6.90,
+        //         extras: [
+        //           Extra(
+        //             name: "Peperoni",
+        //             price: 1.50,
+        //             extraCategory: CategoryEnum.pizza,
+        //           ),
+        //         ],
+        //         artikelNr: '0001',
+        //         description: 'salat mit essif',
+        //         imgAsset: 'lib/img/pizza4.png',
+        //         labels: ["lib/img/peper.png"],
+        //         allergens: ["A", "D"],
+        //         category: Category(
+        //           name: CategoryEnum.pizza.label,
+        //           categoryImg: "lib/img/pizza_category_icon.png",
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        //   orderStatus: OrderStatusEnum.recieved,
+        // ),
 
-        Order(
-          pickUpUser: User(
-            name: "Tom",
-            lastName: "Riddle",
-            telefon: "0165234589",
-          ),
-          isDelivery: false,
-          deliveryAdress: null,
-          selectedTime: TimeOfDay(hour: 17, minute: 45),
-          selectedDate: DateTime.now(),
-          payment: Payment(
-            name: "Apple Pay",
-            img: "assets/images/applepay.png",
-          ),
-          orderSummary: OrderSummary(
-            foods: [
-              Food(
-                id: "f6",
-                name: "Pizza Margherita",
-                price: 6.90,
-                extras: [
-                  Extra(
-                    name: "Peperoni",
-                    price: 1.50,
-                    extraCategory: CategoryEnum.pizza,
-                  ),
-                ],
-                artikelNr: '0001',
-                description: 'salat mit essif',
-                imgAsset: 'lib/img/pizza4.png',
-                labels: ["lib/img/peper.png"],
-                allergens: ["A", "D"],
-                category: Category(
-                  name: CategoryEnum.pizza.label,
-                  categoryImg: "lib/img/pizza_category_icon.png",
-                ),
-              ),
-            ],
-          ),
-          orderStatus: OrderStatusEnum.recieved,
-        ),
+        // Order(
+        //   pickUpUser: User(
+        //     name: "Tom",
+        //     lastName: "Riddle",
+        //     telefon: "0165234589",
+        //   ),
+        //   isDelivery: false,
+        //   deliveryAdress: null,
+        //   selectedTime: TimeOfDay(hour: 17, minute: 45),
+        //   selectedDate: DateTime.now(),
+        //   payment: Payment(
+        //     name: "Apple Pay",
+        //     img: "assets/images/applepay.png",
+        //   ),
+        //   orderSummary: OrderSummary(
+        //     foods: [
+        //       Food(
+        //         id: "f6",
+        //         name: "Pizza Margherita",
+        //         price: 6.90,
+        //         extras: [
+        //           Extra(
+        //             name: "Peperoni",
+        //             price: 1.50,
+        //             extraCategory: CategoryEnum.pizza,
+        //           ),
+        //         ],
+        //         artikelNr: '0001',
+        //         description: 'salat mit essif',
+        //         imgAsset: 'lib/img/pizza4.png',
+        //         labels: ["lib/img/peper.png"],
+        //         allergens: ["A", "D"],
+        //         category: Category(
+        //           name: CategoryEnum.pizza.label,
+        //           categoryImg: "lib/img/pizza_category_icon.png",
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        //   orderStatus: OrderStatusEnum.recieved,
+        // ),
       ],
       OrderStatusEnum.inProgress: [],
       OrderStatusEnum.onWay: [],
       OrderStatusEnum.delivered: [],
     };
+    _listenToOrders();
   }
   // 👇 Bestellung in nächste Phase verschieben
   void moveOrderForward(Order order) {
@@ -144,4 +151,35 @@ class ViewmodelOrders extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+    void _listenToOrders() {
+      _isLoading = true;
+    notifyListeners();
+
+    _ordersSub = firestore.ordersStream().listen(
+      (orders) {
+        // Alle Orders zunächst in "recieved"
+        orderLists = {
+          OrderStatusEnum.recieved: orders,
+          OrderStatusEnum.inProgress: [],
+          OrderStatusEnum.onWay: [],
+          OrderStatusEnum.delivered: [],
+        };
+        _isLoading = false;
+        notifyListeners();
+      },
+      onError: (e) {
+        _error = e.toString();
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _ordersSub?.cancel();
+    super.dispose();
+  
+}
 }
