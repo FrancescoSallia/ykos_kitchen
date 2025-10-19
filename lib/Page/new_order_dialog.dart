@@ -1,7 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ykos_kitchen/components/complete_orders.dart';
 import 'package:ykos_kitchen/components/summary_box.dart';
 import 'package:ykos_kitchen/components/user_information_box.dart';
 import 'package:ykos_kitchen/extension/my_extensions.dart';

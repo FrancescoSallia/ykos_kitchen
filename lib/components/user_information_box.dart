@@ -43,9 +43,28 @@ class UserInformationBox extends StatelessWidget {
                     ),
                     Text(order.deliveryAdress!.telefon),
                     SizedBox(height: 10),
-                    Text(
-                      "Kurier- Information:",
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Kurier- Information:",
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                        ),
+                        Row(
+                          children: [
+                            Icon(order.deliveryAdress!.icon?.iconData),
+                            SizedBox(width: 10),
+                            Text(
+                              order.deliveryAdress!.icon != null
+                                  ? order.deliveryAdress!.icon!.name
+                                  : "",
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                     Text(
                       order.deliveryAdress!.information ?? "",
