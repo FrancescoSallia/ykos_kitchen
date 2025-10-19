@@ -15,11 +15,13 @@ class Order {
   final DateTime currentDate;
   final bool isDelivery;
   final Adress? deliveryAdress;
+  final TimeOfDay? fastDeliveryTime;
   final TimeOfDay? selectedTime;
   final DateTime? selectedDate;
   final Payment payment;
   final OrderSummary orderSummary;
   final OrderStatusEnum orderStatus;
+  final bool confirmedByKitchen;
 
   Order({
     required this.pickUpUser,
@@ -30,10 +32,12 @@ class Order {
     OrderStatusEnum? orderStatus,
     required this.isDelivery,
     required this.deliveryAdress,
+    required this.fastDeliveryTime,
     required this.selectedTime,
     required this.selectedDate,
     required this.payment,
     required this.orderSummary,
+    this.confirmedByKitchen = false,
   }) : orderId = orderId ?? const Uuid().v4(),
        currentTime = currentTime ?? TimeOfDay.now(),
        currentDate = currentDate ?? DateTime.now(),
@@ -48,6 +52,9 @@ class Order {
       "currentDate": Timestamp.fromDate(currentDate),
       "isDelivery": isDelivery,
       "deliveryAdress": deliveryAdress?.toJson(),
+      "fastDeliveryTime": fastDeliveryTime != null
+          ? {"hour": fastDeliveryTime!.hour, "minute": fastDeliveryTime!.minute}
+          : null,
       "selectedTime": selectedTime != null
           ? {"hour": selectedTime!.hour, "minute": selectedTime!.minute}
           : null,
@@ -57,6 +64,7 @@ class Order {
       "payment": payment.toJson(),
       "orderSummary": orderSummary.toJson(),
       "orderStatus": orderStatus.name,
+      "confirmedByKitchen": confirmedByKitchen,
     };
   }
 
@@ -78,6 +86,12 @@ class Order {
       deliveryAdress: json["deliveryAdress"] != null
           ? Adress.fromJson(json["deliveryAdress"])
           : null,
+      fastDeliveryTime: json["fastDeliveryTime"] != null
+          ? TimeOfDay(
+              hour: json["fastDeliveryTime"]["hour"],
+              minute: json["fastDeliveryTime"]["minute"],
+            )
+          : null,
       selectedTime: json["selectedTime"] != null
           ? TimeOfDay(
               hour: json["selectedTime"]["hour"],
@@ -93,6 +107,7 @@ class Order {
         (e) => e.name == json["orderStatus"],
         orElse: () => OrderStatusEnum.recieved,
       ),
+      confirmedByKitchen: json["confirmedByKitchen"] ?? false,
     );
   }
 
@@ -100,7 +115,8 @@ class Order {
     OrderStatusEnum? orderStatus,
     TimeOfDay? selectedTime,
     DateTime? selectedDate,
-    TimeOfDay? currentTime
+    TimeOfDay? fastDeliveryTime,
+    bool? confirmedByKitchen,
   }) {
     return Order(
       pickUpUser: pickUpUser,
@@ -110,11 +126,13 @@ class Order {
       currentDate: currentDate,
       isDelivery: isDelivery,
       deliveryAdress: deliveryAdress,
+      fastDeliveryTime: fastDeliveryTime ?? this.fastDeliveryTime,
       selectedTime: selectedTime ?? this.selectedTime,
       selectedDate: selectedDate ?? this.selectedDate,
       payment: payment,
       orderSummary: orderSummary,
       orderStatus: orderStatus ?? this.orderStatus,
+      confirmedByKitchen: confirmedByKitchen ?? this.confirmedByKitchen,
     );
   }
 }

@@ -71,4 +71,27 @@ class TimeRepository {
       maxLines: 2,
     );
   }
+
+  /// 🔹 Gibt "Heute" zurück, wenn das Datum heute ist,
+  /// sonst das Datum im Format TT.MM.JJJJ
+  Text dateLabelOrFormatted(DateTime? date) {
+    if (date == null) {
+      return const Text("Heute");
+    }
+
+    final now = DateTime.now();
+    final isToday =
+        date.day == now.day && date.month == now.month && date.year == now.year;
+
+    final label = isToday
+        ? "Heute"
+        : "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}";
+
+    return Text(
+      label,
+      softWrap: true,
+      overflow: TextOverflow.ellipsis,
+      maxLines: 2,
+    );
+  }
 }

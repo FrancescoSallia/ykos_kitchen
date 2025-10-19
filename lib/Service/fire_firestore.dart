@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:ykos_kitchen/Service/fire_auth.dart';
 import 'package:ykos_kitchen/enum/order_status_enum.dart';
 import 'package:ykos_kitchen/model/order.dart';
@@ -34,15 +35,21 @@ class FireFirestore {
         );
   }
 
-  Future<void> updateOrderStatus(
-    Order order,
-    OrderStatusEnum newStatus,
-    TimeOfDay currentTime,
-  ) async {
+  Future<void> updateOrderStatus({
+    required Order order,
+    required OrderStatusEnum newStatus,
+    required TimeOfDay? selectedTime,
+    required TimeOfDay? fastDeliveryTime,
+    required DateTime? selectedDate,
+  }) async {
     try {
       final updatedOrder = order.copyWith(
         orderStatus: newStatus,
-        currentTime: currentTime, // optional: aktuelles Änderungsdatum
+        fastDeliveryTime:
+            fastDeliveryTime, // optional: aktuelles Änderungsdatum
+        confirmedByKitchen: true,
+        selectedTime: selectedTime,
+        selectedDate: selectedDate,
       );
 
       // 1️⃣ Update in der User-spezifischen Sammlung
@@ -55,8 +62,9 @@ class FireFirestore {
 
       // 2️⃣ Update in der globalen Sammlung
       await firestore
-          .collection("yokos_kitchen")
-          .doc(order.userId) 
+          .collection("ykos_kitchen")
+          // .doc("global_orders") // ⚡ fix: nicht userId verwenden!
+          .doc(order.userId)
           .collection("all_orders")
           .doc(order.orderId)
           .update(updatedOrder.toJson());

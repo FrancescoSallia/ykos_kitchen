@@ -1,9 +1,9 @@
 import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ykos_kitchen/Page/new_order_dialog.dart';
 import 'package:ykos_kitchen/Service/fire_firestore.dart';
 import 'package:ykos_kitchen/enum/order_status_enum.dart';
+import 'package:ykos_kitchen/main.dart';
 import 'package:ykos_kitchen/model/order.dart';
 
 class ViewmodelOrders extends ChangeNotifier {
@@ -17,6 +17,8 @@ class ViewmodelOrders extends ChangeNotifier {
 
   late Map<OrderStatusEnum, List<Order>> orderLists;
   StreamSubscription? _ordersSub;
+
+  TimeOfDay? prepareTime;
 
   ViewmodelOrders() {
     orderLists = {
@@ -119,7 +121,16 @@ class ViewmodelOrders extends ChangeNotifier {
   // 👇 Bestellung in nächste Phase verschieben
   void moveOrderForward(Order order) async {
     final currentStatus = order.orderStatus;
-    final nextIndex = currentStatus.statusIndex + 1;
+    int nextIndex = currentStatus.statusIndex + 1;
+
+    // 🔹 Prüfen, ob Bestellung Abholung ist und Status 'onWay' überspringen
+    if (!order.isDelivery) {
+      // 'onWay' ist typischerweise StatusIndex 2 (nach 'inProgress')
+      // Wir springen direkt auf 'delivered' (StatusIndex 3)
+      if (OrderStatusEnum.values[nextIndex] == OrderStatusEnum.onWay) {
+        nextIndex++; // Status überspringen
+      }
+    }
 
     if (nextIndex < OrderStatusEnum.values.length) {
       final nextStatus = OrderStatusEnum.values[nextIndex];
@@ -130,19 +141,47 @@ class ViewmodelOrders extends ChangeNotifier {
       orderLists[nextStatus]?.add(updatedOrder);
       notifyListeners();
 
+      if (order.selectedDate != null && order.selectedTime != null) {
+        // Datum und Zeit der Bestellung kombinieren
+        final orderDateTime = DateTime(
+          order.selectedDate!.year,
+          order.selectedDate!.month,
+          order.selectedDate!.day,
+          order.selectedTime!.hour,
+          order.selectedTime!.minute,
+        );
+
+        // +40 Minuten zur gewählten Kundenzeit
+        final fastTime = orderDateTime.add(const Duration(minutes: 40));
+        prepareTime = TimeOfDay.fromDateTime(fastTime);
+      } else {
+        // Fallback: wenn keine Zeit angegeben ist, aktuelle Zeit +40 Minuten
+        final fastTime = DateTime.now().add(const Duration(minutes: 40));
+        prepareTime = TimeOfDay.fromDateTime(fastTime);
+      }
+
       // Firestore update
       await firestore.updateOrderStatus(
-        order,
-        nextStatus,
-        TimeOfDay.now(),
-      ); //TODO: die zeit muss in eine variable sein damit man sie flexible ändern kann
+        order: order,
+        newStatus: nextStatus,
+        selectedTime: order.selectedTime,
+        fastDeliveryTime: order.fastDeliveryTime,
+        selectedDate: order.selectedDate,
+      );
     }
   }
 
   // 👇 Bestellung zurück verschieben
   void moveOrderBackward(Order order) async {
     final currentStatus = order.orderStatus;
-    final prevIndex = currentStatus.statusIndex - 1;
+    int prevIndex = currentStatus.statusIndex - 1;
+
+    // 🔹 Prüfen, ob Abholbestellung und Status 'onWay' überspringen
+    if (!order.isDelivery) {
+      if (OrderStatusEnum.values[prevIndex] == OrderStatusEnum.onWay) {
+        prevIndex--; // Status überspringen
+      }
+    }
 
     if (prevIndex >= 0) {
       final prevStatus = OrderStatusEnum.values[prevIndex];
@@ -155,10 +194,12 @@ class ViewmodelOrders extends ChangeNotifier {
 
       // Firestore update
       await firestore.updateOrderStatus(
-        order,
-        prevStatus,
-        TimeOfDay.now(),
-      ); //TODO: die zeit muss in eine variable sein damit man sie flexible ändern kann
+        order: order,
+        newStatus: prevStatus,
+        selectedTime: order.selectedTime,
+        fastDeliveryTime: order.fastDeliveryTime,
+        selectedDate: order.selectedDate,
+      );
     }
   }
 
@@ -180,9 +221,30 @@ class ViewmodelOrders extends ChangeNotifier {
           grouped[order.orderStatus]?.add(order);
         }
 
+        // 🔹 Finde neu eingegangene Bestellungen
+        final oldRecievedOrders = orderLists[OrderStatusEnum.recieved] ?? [];
+        final newRecievedOrders = grouped[OrderStatusEnum.recieved] ?? [];
+
+        // Vergleiche IDs — finde Bestellungen, die vorher nicht da waren
+        final newOnes = newRecievedOrders.where((newOrder) {
+          return !oldRecievedOrders.any(
+            (old) => old.orderId == newOrder.orderId,
+          );
+        }).toList();
+
         orderLists = grouped;
         _isLoading = false;
         notifyListeners();
+
+        // 🔹 Öffne Dialog für jede neue Bestellung (nur, wenn noch kein Dialog offen ist)
+        for (final order in newOnes) {
+          if (ModalRoute.of(navigatorKey.currentContext!)?.isCurrent != true) {
+            // Verhindert mehrfachen Dialog während Firestore mehrere Snapshots liefert
+            Future.delayed(const Duration(milliseconds: 300), () {
+              _showNewOrderDialog(order);
+            });
+          }
+        }
       },
       onError: (e) {
         _error = e.toString();
@@ -196,5 +258,50 @@ class ViewmodelOrders extends ChangeNotifier {
   void dispose() {
     _ordersSub?.cancel();
     super.dispose();
+  }
+
+  void _showNewOrderDialog(Order order) {
+    final context = navigatorKey
+        .currentContext; //von der globalen NavigatorKey in der main für den context
+    if (context == null || order.confirmedByKitchen == true) return;
+
+    // 🔹 Berechne hier die vorgeschlagene Vorbereitungszeit bevor der Dialog geöffnet wird.
+    // Wenn der Kunde eine Vorbestellung mit Datum+Uhrzeit gemacht hat, verwenden wir
+    // diese Zeit + 40 Minuten. Ansonsten Fallback auf jetzt + 40 Minuten.
+    if (order.selectedDate != null && order.selectedTime != null) {
+      final orderDateTime = DateTime(
+        order.selectedDate!.year,
+        order.selectedDate!.month,
+        order.selectedDate!.day,
+        order.selectedTime!.hour,
+        order.selectedTime!.minute,
+      );
+
+      final fastTime = orderDateTime.add(const Duration(minutes: 40));
+      prepareTime = TimeOfDay.fromDateTime(fastTime);
+    } else {
+      final fastTime = DateTime.now().add(const Duration(minutes: 40));
+      prepareTime = TimeOfDay.fromDateTime(fastTime);
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => NewOrderDialog(
+        order: order,
+         initialPrepareTime: prepareTime,
+        onConfirm: (TimeOfDay newPrepareTime) async {
+          Navigator.of(context).pop();
+
+          // 🔹 Status auf inProgress setzen und Zeit speichern
+          await firestore.updateOrderStatus(
+            order: order,
+            newStatus: order.orderStatus,
+            selectedTime: newPrepareTime,
+            fastDeliveryTime: order.fastDeliveryTime,
+            selectedDate: order.selectedDate,
+          );
+        },
+      ),
+    );
   }
 }

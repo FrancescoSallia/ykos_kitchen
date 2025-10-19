@@ -328,9 +328,15 @@ class _HomePageState extends State<HomePage> {
                   order.isDelivery ? "Zustellung" : "Abholung",
                   style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                 ),
-                timeRepo.dateDayMonthYearToString(order.selectedDate),
+                Visibility(
+                  visible: true,
+                  child: timeRepo.dateLabelOrFormatted(order.selectedDate),
+                ),
                 SizedBox(width: 10),
-                timeRepo.timeToString(order.selectedTime, context),
+                timeRepo.timeToString(
+                  order.selectedTime ?? order.fastDeliveryTime,
+                  context,
+                ),
               ],
             ),
           ),
