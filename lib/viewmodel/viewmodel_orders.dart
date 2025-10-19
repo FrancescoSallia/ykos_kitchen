@@ -161,7 +161,7 @@ class ViewmodelOrders extends ChangeNotifier {
       }
 
       // Firestore update
-      await firestore.updateOrderStatus(
+      await firestore.updateOrder(
         order: order,
         newStatus: nextStatus,
         selectedTime: order.selectedTime,
@@ -193,7 +193,7 @@ class ViewmodelOrders extends ChangeNotifier {
       notifyListeners();
 
       // Firestore update
-      await firestore.updateOrderStatus(
+      await firestore.updateOrder(
         order: order,
         newStatus: prevStatus,
         selectedTime: order.selectedTime,
@@ -288,12 +288,12 @@ class ViewmodelOrders extends ChangeNotifier {
       barrierDismissible: false,
       builder: (_) => NewOrderDialog(
         order: order,
-         initialPrepareTime: prepareTime,
+        initialPrepareTime: prepareTime,
         onConfirm: (TimeOfDay newPrepareTime) async {
           Navigator.of(context).pop();
 
-          // 🔹 Status auf inProgress setzen und Zeit speichern
-          await firestore.updateOrderStatus(
+          // 🔹 Zeit speichern
+          await firestore.updateOrder(
             order: order,
             newStatus: order.orderStatus,
             selectedTime: newPrepareTime,
@@ -304,4 +304,17 @@ class ViewmodelOrders extends ChangeNotifier {
       ),
     );
   }
+
+ Future<void> updateOrder(Order order) async {
+  TimeOfDay newPrepareTime = order.selectedTime ??
+      TimeOfDay.fromDateTime(DateTime.now().add(const Duration(minutes: 40)));
+
+  await firestore.updateOrder(
+    order: order,
+    newStatus: order.orderStatus,
+    selectedTime: newPrepareTime,
+    fastDeliveryTime: order.fastDeliveryTime,
+    selectedDate: order.selectedDate,
+  );
+}
 }

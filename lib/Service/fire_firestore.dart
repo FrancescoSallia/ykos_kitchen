@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:ykos_kitchen/Service/fire_auth.dart';
 import 'package:ykos_kitchen/enum/order_status_enum.dart';
 import 'package:ykos_kitchen/model/order.dart';
@@ -27,15 +26,16 @@ class FireFirestore {
   // Stream für alle Bestellungen global
   Stream<List<Order>> fetchOrdersStream() {
     return FirebaseFirestore.instance
-        .collectionGroup('all_orders') // hört auf alle Bestellungen aller User
-        .snapshots()
+        .collectionGroup('all_orders')
+        // .orderBy("currentDate")
+        .snapshots() // hört auf alle Bestellungen aller User
         .map(
           (snapshot) =>
               snapshot.docs.map((doc) => Order.fromJson(doc.data())).toList(),
         );
   }
 
-  Future<void> updateOrderStatus({
+  Future<void> updateOrder({
     required Order order,
     required OrderStatusEnum newStatus,
     required TimeOfDay? selectedTime,

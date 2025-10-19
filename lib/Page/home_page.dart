@@ -1,7 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:ykos_kitchen/Page/new_order_dialog.dart';
+import 'package:ykos_kitchen/Page/order_detail_page.dart';
 import 'package:ykos_kitchen/repository/time_repository.dart';
 import 'package:ykos_kitchen/theme/colors.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -230,9 +233,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   ListView listView(List<Order> list, String dottedBoxText) {
+    // Sortiere die Liste nach Datum und Zeit (älteste zuerst)
+    list.sort((a, b) {
+      final aDateTime = DateTime(
+        a.selectedDate?.year ?? 0,
+        a.selectedDate?.month ?? 0,
+        a.selectedDate?.day ?? 0,
+        a.selectedTime?.hour ?? 0,
+        a.selectedTime?.minute ?? 0,
+      );
+
+      final bDateTime = DateTime(
+        b.selectedDate?.year ?? 0,
+        b.selectedDate?.month ?? 0,
+        b.selectedDate?.day ?? 0,
+        b.selectedTime?.hour ?? 0,
+        b.selectedTime?.minute ?? 0,
+      );
+
+      return aDateTime.compareTo(bDateTime);
+    });
+
     return ListView.builder(
       physics: NeverScrollableScrollPhysics(),
       shrinkWrap: true,
+      reverse: false,
       itemCount: list.isNotEmpty ? list.length : 1,
       itemBuilder: (context, index) {
         if (list.isEmpty) {
@@ -241,15 +266,24 @@ class _HomePageState extends State<HomePage> {
           final order = list[index];
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: orderedItem(
-              order,
-              context,
-              () {
-                context.read<ViewmodelOrders>().moveOrderBackward(order);
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (context) => OrderDetailPage(order: order),
+                  ),
+                );
               },
-              () {
-                context.read<ViewmodelOrders>().moveOrderForward(order);
-              },
+              child: orderedItem(
+                order,
+                context,
+                () {
+                  context.read<ViewmodelOrders>().moveOrderBackward(order);
+                },
+                () {
+                  context.read<ViewmodelOrders>().moveOrderForward(order);
+                },
+              ),
             ),
           );
         }
@@ -287,7 +321,7 @@ class _HomePageState extends State<HomePage> {
               child: Lottie.asset(
                 animate: true,
                 order.orderStatus.lottieAnimation,
-                repeat: true,
+                repeat: false,
               ),
             ),
           ),
