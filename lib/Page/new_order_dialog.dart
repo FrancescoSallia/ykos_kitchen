@@ -201,9 +201,11 @@ class _NewOrderDialogState extends State<NewOrderDialog> {
             Center(
               child: Column(
                 children: [
-                  const Text(
-                    "⏱ Zubereitungszeit anpassen",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  Text(
+                    widget.order.isDelivery
+                        ? "⏱ Lieferzeit anpassen"
+                        : "⏱ Abholzeit anpassen",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                   ),
                   const SizedBox(height: 8),
                   Row(
