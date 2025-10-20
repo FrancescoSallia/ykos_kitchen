@@ -1,19 +1,25 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ykos_kitchen/Error/app_error_type_enum.dart';
 
 class AppErrorHandler {
-  // Mappt Exception zu AppErrorType
+  // 1️⃣ Exception zu ErrorType mappen
   static AppErrorType mapExceptionToErrorType(Exception e) {
     if (e is FirebaseAuthException) {
       return AppErrorType.firebaseAuth;
     } else if (e is FirebaseException) {
-      return AppErrorType.server;
+      return AppErrorType.firebaseFirestore;
+    } else if (e is SocketException) {
+      return AppErrorType.network;
+    } else if (e is TimeoutException) {
+      return AppErrorType.network;
     } else {
       return AppErrorType.unknown;
     }
   }
 
-  // Gibt die passende Fehlernachricht zurück
+  // 2️⃣ Benutzerfreundliche Fehlermeldung liefern
   static String getErrorMessage({
     required AppErrorType errorType,
     Exception? exception,
@@ -21,54 +27,62 @@ class AppErrorHandler {
   }) {
     switch (errorType) {
       case AppErrorType.network:
-        return "Keine Internetverbindung.";
+        return "Keine Internetverbindung oder Zeitüberschreitung. Bitte überprüfe deine Verbindung.";
+
       case AppErrorType.server:
-        return "Serverfehler. Bitte versuche es erneut.";
+        return "Serverfehler. Bitte versuche es in Kürze erneut.";
+
       case AppErrorType.firebaseAuth:
         if (exception is FirebaseAuthException) {
-          // Hier geben wir den Firebase-Message oder einen freundlicheren Text zurück
           switch (exception.code) {
             case 'email-already-in-use':
-              return "Dieses Konto existiert bereits.";
+              return "Diese E-Mail-Adresse wird bereits verwendet.";
             case 'user-not-found':
-              return "Benutzer nicht gefunden.";
+              return "Kein Benutzer mit dieser E-Mail gefunden.";
             case 'wrong-password':
-              return "Falsches Passwort.";
-            case 'credential-already-in-use':
-              return "Die übergebenen Anmeldedaten sind ungültig oder abgelaufen. Bitte erneut versuchen.";
+              return "Das Passwort ist nicht korrekt.";
             case 'invalid-email':
-              return "Die E-Mail-Adresse ist ungültig.";
+              return "Bitte eine gültige E-Mail-Adresse eingeben.";
             case 'weak-password':
               return "Das Passwort ist zu schwach.";
+            case 'too-many-requests':
+              return "Zu viele Anmeldeversuche. Bitte später erneut versuchen.";
             default:
-              return exception.message ?? "Authentifizierungsfehler.";
+              return exception.message ??
+                  "Ein Authentifizierungsfehler ist aufgetreten.";
           }
         }
-        return customMessage ?? "Authentifizierungsfehler.";
-      case AppErrorType.unknown:
-        return "Ein unbekannter Fehler ist aufgetreten.";
-      case AppErrorType.custom:
-        return customMessage ?? "Ein Fehler ist aufgetreten.";
+        return "Ein Anmeldefehler ist aufgetreten.";
+
       case AppErrorType.firebaseFirestore:
         if (exception is FirebaseException) {
           switch (exception.code) {
-            case "INVALID_ARGUMENT":
-              return "Client specified an invalid argument.";
-            case "UNAUTHENTICATED":
-              return "The request does not have valid authentication credentials for the operation.";
-            case "UNKNOWN":
-              return "Unknown error or an error from a different error domain.";
-            case "OUT_OF_RANGE":
-              return "Operation was attempted past the valid range.";
+            case 'permission-denied':
+              return "Du hast keine Berechtigung für diese Aktion.";
+            case 'not-found':
+              return "Das angeforderte Dokument existiert nicht.";
+            case 'unavailable':
+              return "Der Firestore-Dienst ist momentan nicht erreichbar.";
+            case 'aborted':
+              return "Die Anfrage wurde abgebrochen. Bitte erneut versuchen.";
+            case 'deadline-exceeded':
+              return "Der Server hat zu lange gebraucht, um zu antworten.";
             default:
-              return "FireExeption Error unknown";
+              return "Ein Datenbankfehler ist aufgetreten.";
           }
         }
-        return "Unknown error.";
+        return "Ein unbekannter Datenbankfehler ist aufgetreten.";
+
+      case AppErrorType.custom:
+        return customMessage ?? "Ein Fehler ist aufgetreten.";
+
+      case AppErrorType.unknown:
+        return customMessage ??
+            "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.";
     }
   }
 
-  // Hilfsmethode, um direkt aus einer Exception eine Nachricht zu bekommen
+  // 3️⃣ Kurzform: Direkt Exception → Nachricht
   static String getMessageFromException(Exception e, {String? customMessage}) {
     final type = mapExceptionToErrorType(e);
     return getErrorMessage(

@@ -1,9 +1,9 @@
+import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:ykos_kitchen/Page/new_order_dialog.dart';
 import 'package:ykos_kitchen/Page/order_detail_page.dart';
 import 'package:ykos_kitchen/repository/time_repository.dart';
 import 'package:ykos_kitchen/theme/colors.dart';
@@ -25,101 +25,31 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ViewmodelOrders>();
+      final viewModelOrders = context.read<ViewmodelOrders>();
+      if (viewModelOrders.error != null) {
+        AnimatedSnackBar.material(
+          viewModelOrders.error.toString(),
+          type: AnimatedSnackBarType.error,
+        ).show(context);
+      }
     });
-
-    // final List<Order> dummyOrdersNew = [
-    //   // 🧾 1️⃣ Lieferung – Bestellung eingegangen
-    //   Order(
-    //     pickUpUser: null,
-    //     isDelivery: true,
-    //     deliveryAdress: Adress(
-    //       name: "Mara Herrmann",
-    //       telefon: "0176543524",
-    //       street: "Müllerstraße",
-    //       houseNumber: "12a",
-    //       plz: "13437",
-    //       place: "Berlin",
-    //       icon: AdressSymbol(name: "Home", iconData: Icons.home),
-    //       information: "bitte nicht klingeln ich komme denn runter",
-    //     ),
-    //     selectedTime: TimeOfDay(hour: 17, minute: 45),
-    //     selectedDate: DateTime.now(),
-    //     payment: Payment(name: "Apple Pay", img: "assets/images/applepay.png"),
-    //     orderSummary: OrderSummary(
-    //       foods: [
-    //         Food(
-    //           id: "f6",
-    //           name: "Pizza Margherita",
-    //           price: 6.90,
-    //           extras: [
-    //             Extra(
-    //               name: "Peperoni",
-    //               price: 1.50,
-    //               extraCategory: CategoryEnum.pizza,
-    //             ),
-    //           ],
-    //           artikelNr: '0001',
-    //           description: 'salat mit essif',
-    //           imgAsset: 'lib/img/pizza4.png',
-    //           labels: ["lib/img/peper.png"],
-    //           allergens: ["A", "D"],
-    //           category: Category(
-    //             name: CategoryEnum.pizza.label,
-    //             categoryImg: "lib/img/pizza_category_icon.png",
-    //           ),
-    //         ),
-    //       ],
-    //     ),
-    //     orderStatus: OrderStatusEnum.recieved,
-    //   ),
-
-    //   Order(
-    //     pickUpUser: User(
-    //       name: "Tom",
-    //       lastName: "Riddle",
-    //       telefon: "0165234589",
-    //     ),
-    //     isDelivery: false,
-    //     deliveryAdress: null,
-    //     selectedTime: TimeOfDay(hour: 17, minute: 45),
-    //     selectedDate: DateTime.now(),
-    //     payment: Payment(name: "Apple Pay", img: "assets/images/applepay.png"),
-    //     orderSummary: OrderSummary(
-    //       foods: [
-    //         Food(
-    //           id: "f6",
-    //           name: "Pizza Margherita",
-    //           price: 6.90,
-    //           extras: [
-    //             Extra(
-    //               name: "Peperoni",
-    //               price: 1.50,
-    //               extraCategory: CategoryEnum.pizza,
-    //             ),
-    //           ],
-    //           artikelNr: '0001',
-    //           description: 'salat mit essif',
-    //           imgAsset: 'lib/img/pizza4.png',
-    //           labels: ["lib/img/peper.png"],
-    //           allergens: ["A", "D"],
-    //           category: Category(
-    //             name: CategoryEnum.pizza.label,
-    //             categoryImg: "lib/img/pizza_category_icon.png",
-    //           ),
-    //         ),
-    //       ],
-    //     ),
-    //     orderStatus: OrderStatusEnum.recieved,
-    //   ),
-    // ];
-
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final viewModelOrders = context.watch<ViewmodelOrders>();
+
+    if (viewModelOrders.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        AnimatedSnackBar.material(
+          viewModelOrders.error!,
+          type: AnimatedSnackBarType.error,
+        ).show(context);
+        viewModelOrders.clearError(); // Error zurücksetzen.
+      });
+    }
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 248, 248, 248),
       appBar: AppBar(
@@ -172,6 +102,58 @@ class _HomePageState extends State<HomePage> {
               title: Text("Adress"),
               // trailing: Icon(AdressEnum.suit.label),
               onTap: () {},
+            ),
+            ListTile(
+              title: Text("Clear Orders"),
+              // trailing: Icon(AdressEnum.suit.label),
+              onTap: () {
+                final dialog = AlertDialog(
+                  title: Text("Alle Bestellungen wirklich löschen?"),
+                  content: Text("Alle Bestellungen werden gelöscht."),
+                  actions: [
+                    TextButton(
+                      onPressed: () async {
+                        final lists = viewModelOrders.orderLists;
+
+                        await Future.wait([
+                          viewModelOrders.clearListsFromDB(
+                            lists[OrderStatusEnum.recieved],
+                          ),
+                          viewModelOrders.clearListsFromDB(
+                            lists[OrderStatusEnum.inProgress],
+                          ),
+                          viewModelOrders.clearListsFromDB(
+                            lists[OrderStatusEnum.onWay],
+                          ),
+                          viewModelOrders.clearListsFromDB(
+                            lists[OrderStatusEnum.delivered],
+                          ),
+                          viewModelOrders.clearListsFromDB(
+                            lists[OrderStatusEnum.ready],
+                          ),
+                        ]);
+                        if (!mounted) return;
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        "Ja, löschen",
+                        style: GoogleFonts.inter(color: Colors.red),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        "Abbrechen",
+                        style: GoogleFonts.inter(color: Colors.black),
+                      ),
+                    ),
+                  ],
+                );
+                showDialog(context: context, builder: (context) => dialog);
+              },
             ),
           ],
         ),

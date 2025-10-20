@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:ykos_kitchen/Error/app_error_handler.dart';
 import 'package:ykos_kitchen/Page/new_order_dialog.dart';
 import 'package:ykos_kitchen/Service/fire_firestore.dart';
 import 'package:ykos_kitchen/enum/order_status_enum.dart';
@@ -14,6 +15,11 @@ class ViewmodelOrders extends ChangeNotifier {
 
   String? _error;
   String? get error => _error;
+
+  void clearError() {
+  _error = null;
+  notifyListeners();
+}
 
   late Map<OrderStatusEnum, List<Order>> orderLists;
   StreamSubscription? _ordersSub;
@@ -305,16 +311,39 @@ class ViewmodelOrders extends ChangeNotifier {
     );
   }
 
- Future<void> updateOrder(Order order) async {
-  TimeOfDay newPrepareTime = order.selectedTime ??
-      TimeOfDay.fromDateTime(DateTime.now().add(const Duration(minutes: 40)));
+  Future<void> updateOrder(Order order) async {
+    TimeOfDay newPrepareTime =
+        order.selectedTime ??
+        TimeOfDay.fromDateTime(DateTime.now().add(const Duration(minutes: 40)));
 
-  await firestore.updateOrder(
-    order: order,
-    newStatus: order.orderStatus,
-    selectedTime: newPrepareTime,
-    fastDeliveryTime: order.fastDeliveryTime,
-    selectedDate: order.selectedDate,
-  );
-}
+    await firestore.updateOrder(
+      order: order,
+      newStatus: order.orderStatus,
+      selectedTime: newPrepareTime,
+      fastDeliveryTime: order.fastDeliveryTime,
+      selectedDate: order.selectedDate,
+    );
+  }
+
+  Future<void> removeOrder(Order order) async {
+    _error = null;
+    notifyListeners();
+
+    try {
+      await firestore.removeOrder(order);
+      notifyListeners();
+    } on Exception catch (e) {
+      final message = AppErrorHandler.getMessageFromException(e);
+      _error = message;
+      notifyListeners();
+    }
+  }
+
+  Future<void> clearListsFromDB(List<Order>? orderList) async {
+      if (orderList == null) return;
+
+      for (var item in orderList) {
+        await removeOrder(item);
+      }
+    }
 }

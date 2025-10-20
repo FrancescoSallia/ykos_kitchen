@@ -63,8 +63,8 @@ class FireFirestore {
       // 2️⃣ Update in der globalen Sammlung
       await firestore
           .collection("ykos_kitchen")
-          // .doc("global_orders") // ⚡ fix: nicht userId verwenden!
-          .doc(order.userId)
+          .doc("global_orders") // ⚡ fix: nicht userId verwenden!
+          // .doc(order.userId)
           .collection("all_orders")
           .doc(order.orderId)
           .update(updatedOrder.toJson());
@@ -77,7 +77,13 @@ class FireFirestore {
   //Remove Order (optional)
   Future<void> removeOrder(Order item) async {
     try {
-      await userRef.collection('orders').doc(item.orderId).delete();
+      await firestore
+          .collection("ykos_kitchen")
+          .doc("global_orders")
+          // .doc(order.userId)
+          .collection("all_orders")
+          .doc(item.orderId)
+          .delete();
     } on FirebaseException {
       rethrow;
     }
