@@ -78,7 +78,6 @@ Example:
 ### Benefits
 
 ✅ **Instant synchronization** between customer and kitchen apps  
-✅ **Offline-first support** with local caching  
 ✅ **Secure user authentication** for kitchen staff  
 
 ---
