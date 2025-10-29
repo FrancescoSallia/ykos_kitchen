@@ -393,9 +393,9 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(100),
         onTap: onTap,
         child: SizedBox(
-          width: 30,
-          height: 30,
-          child: Icon(iconData, color: Colors.white, size: 30),
+          width: 35,
+          height: 35,
+          child: Icon(iconData, color: Colors.white, size: 35),
         ),
       ),
     );
