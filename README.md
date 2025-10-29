@@ -1,5 +1,5 @@
 <p align="center">
- <img src="./img/ykos_kitchen_presentation.png" width="1000"> 
+ <img src="./img/ykos_presentation_kitchen.png" width="1000"> 
 </p>
 
 ---
@@ -30,10 +30,10 @@ Once a customer places an order in the YKOS BBQ Chicken app, it appears **instan
 ## 📱 Screenshots & Animations
 
 <p align="center">
- <img src="./img/login.png" width="200"> 
- <img src="./img/home.png" width="200"> 
- <img src="./img/detail.gif" width="200"> 
- <img src="./img/search.png" width="200"> 
+ <img src="./img/kitchen_empty.png" width="200"> 
+ <img src="./img/ordered.png" width="200"> 
+ <img src="./img/kitchen_order.gif" width="200"> 
+ <img src="./img/kitchen_overview.gif" width="200"> 
 </p>
 
 ---
