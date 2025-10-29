@@ -45,6 +45,8 @@ dependencies:
   iconsax: ^0.0.8
   lottie: ^3.3.1
   flutter_icon_snackbar: ^1.2.1
+  fake_cloud_firestore: ^4.0.0
+  firebase_auth_mocks: ^0.15.1
 
 
 
