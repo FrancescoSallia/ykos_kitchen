@@ -27,6 +27,18 @@ Once a customer places an order in the YKOS BBQ Chicken app, it appears **instan
 
 ---
 
+## 📱 Screenshots & Animations
+
+<p align="center">
+ <img src="./img/login.png" width="200"> 
+ <img src="./img/home.png" width="200"> 
+ <img src="./img/detail.gif" width="200"> 
+ <img src="./img/search.png" width="200"> 
+</p>
+
+---
+
+
 ## 🔧 Technical Overview
 
 Developed using **Flutter** and structured with the **MVVM pattern (Model-View-ViewModel)**.  
