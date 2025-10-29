@@ -1,5 +1,5 @@
 <p align="center">
- <img src="./img/ykos_presentation_kitchen.png" width="1000"> 
+ <img src="./img/ykos_kitchen.png" width="1000"> 
 </p>
 
 ---
